@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
   <title>YouTube Transcript Extractor</title>
@@ -11,23 +12,49 @@
       max-width: 900px;
       margin: auto;
       padding: 20px;
+      background-color: #111;
+      color: white;
+    }
+
+    h1 {
+      margin-bottom: 20px;
     }
 
     input {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      background-color: #222;
+      color: white;
+      border: 1px solid #444;
     }
 
     textarea {
       width: 100%;
-      height: 400px;
+      height: 500px;
       margin-top: 20px;
+      padding: 12px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background-color: #222;
+      color: white;
+      border: 1px solid #444;
     }
 
     button {
-      margin-top: 10px;
-      padding: 10px 20px;
+      padding: 12px 20px;
+      margin-right: 10px;
       cursor: pointer;
+      border: none;
+      background-color: #444;
+      color: white;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background-color: #666;
     }
 
   </style>
@@ -36,79 +63,105 @@
 
 <body>
 
-<h1>YouTube Transcript Extractor</h1>
+  <h1>YouTube Transcript Extractor</h1>
 
-<input
-  id="youtubeUrl"
-  placeholder="Paste YouTube URL"
->
+  <input
+    id="youtubeUrl"
+    placeholder="Paste YouTube URL"
+  >
 
-<button onclick="getTranscript()">
-  Get Transcript
-</button>
+  <button onclick="getTranscript()">
+    Get Transcript
+  </button>
 
-<textarea id="transcript"></textarea>
+  <button onclick="copyTranscript()">
+    Copy to Clipboard
+  </button>
 
-<button onclick="copyTranscript()">
-  Copy to Clipboard
-</button>
+  <textarea
+    id="transcript"
+    placeholder="Transcript will appear here..."
+  ></textarea>
 
-<script>
+  <script>
 
-function extractVideoId(url) {
+    function extractVideoId(url) {
 
-  const match = url.match(
-    /(?:v=|youtu\.be\/)([^&\\n?#]+)/
-  );
+      const match = url.match(
+        /(?:v=|youtu\.be\/|shorts\/)([^&\n?#]+)/
+      );
 
-  return match ? match[1] : null;
-}
+      return match ? match[1] : null;
+    }
 
-async function getTranscript() {
+    async function getTranscript() {
 
-  const url =
-    document.getElementById("youtubeUrl").value;
+      const url =
+        document.getElementById("youtubeUrl").value;
 
-  const videoId = extractVideoId(url);
+      const videoId = extractVideoId(url);
 
-  if (!videoId) {
+      if (!videoId) {
 
-    alert("Invalid URL");
+        alert("Invalid YouTube URL");
 
-    return;
-  }
+        return;
+      }
 
-  try {
+      document.getElementById(
+        "transcript"
+      ).value = "Loading transcript...";
 
-    const response = await fetch(
-      `/transcript/${videoId}`
-    );
+      try {
 
-    const data = await response.json();
+        const response = await fetch(
+          `/transcript/${videoId}`
+        );
 
-    document.getElementById(
-      "transcript"
-    ).value = data.transcript;
+        const data = await response.json();
 
-  } catch (err) {
+        console.log(data);
 
-    console.error(err);
+        if (data.transcript) {
 
-    alert("Failed to fetch transcript");
-  }
-}
+          document.getElementById(
+            "transcript"
+          ).value = data.transcript;
 
-function copyTranscript() {
+        } else {
 
-  const textarea =
-    document.getElementById("transcript");
+          document.getElementById(
+            "transcript"
+          ).value =
+            "ERROR:\n\n" +
+            JSON.stringify(data, null, 2);
+        }
 
-  textarea.select();
+      } catch (err) {
 
-  document.execCommand("copy");
-}
+        console.error(err);
 
-</script>
+        document.getElementById(
+          "transcript"
+        ).value =
+          "Frontend Error:\n\n" + err;
+      }
+    }
+
+    function copyTranscript() {
+
+      const textarea =
+        document.getElementById("transcript");
+
+      navigator.clipboard.writeText(
+        textarea.value
+      );
+
+      alert("Copied to clipboard");
+    }
+
+  </script>
 
 </body>
+
 </html>
