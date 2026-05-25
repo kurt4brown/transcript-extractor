@@ -4,6 +4,7 @@
   <title>YouTube Transcript Extractor</title>
 
   <style>
+
     body {
       font-family: Arial;
       max-width: 900px;
@@ -17,84 +18,99 @@
       margin-top: 20px;
     }
 
+    input {
+      width: 100%;
+      padding: 10px;
+    }
+
     button {
       margin-top: 10px;
       padding: 10px 20px;
       cursor: pointer;
     }
 
-    input {
-      width: 100%;
-      padding: 10px;
-    }
   </style>
 </head>
 
 <body>
 
-  <h1>YouTube Transcript Extractor</h1>
+<h1>YouTube Transcript Extractor</h1>
 
-  <input
-    id="youtubeUrl"
-    placeholder="Paste YouTube URL"
-  >
+<input
+  id="youtubeUrl"
+  placeholder="Paste YouTube URL"
+>
 
-  <button onclick="getTranscript()">
-    Get Transcript
-  </button>
+<button onclick="getTranscript()">
+  Get Transcript
+</button>
 
-  <textarea id="transcript"></textarea>
+<textarea id="transcript"></textarea>
 
-  <button onclick="copyTranscript()">
-    Copy to Clipboard
-  </button>
+<button onclick="copyTranscript()">
+  Copy to Clipboard
+</button>
 
-  <script>
+<script>
 
-    function extractVideoId(url) {
-      const match = url.match(
-        /(?:v=|youtu\.be\/)([^&\n?#]+)/
-      );
+function extractVideoId(url) {
 
-      return match ? match[1] : null;
-    }
+  const match = url.match(
+    /(?:v=|youtu\.be\/)([^&\n?#]+)/
+  );
 
-    async function getTranscript() {
+  return match ? match[1] : null;
+}
 
-      const url = document.getElementById(
-        "youtubeUrl"
-      ).value;
+async function getTranscript() {
 
-      const videoId = extractVideoId(url);
+  const url =
+    document.getElementById("youtubeUrl").value;
 
-      if (!videoId) {
-        alert("Invalid YouTube URL");
-        return;
-      }
+  const videoId = extractVideoId(url);
 
-      const response = await fetch(
-        `https://YOUR_API_URL/transcript/${videoId}`
-      );
+  if (!videoId) {
+    alert("Invalid URL");
+    return;
+  }
 
-      const data = await response.json();
+  try {
 
-      document.getElementById(
-        "transcript"
-      ).value = data.transcript;
-    }
+    const response = await fetch(
+      `https://youtubetranscript.com/?server_vid2=${videoId}`
+    );
 
-    function copyTranscript() {
+    const data = await response.json();
 
-      const textarea = document.getElementById(
-        "transcript"
-      );
+    let text = "";
 
-      textarea.select();
+    data.forEach(item => {
+      text += item.text + " ";
+    });
 
-      document.execCommand("copy");
-    }
+    document.getElementById(
+      "transcript"
+    ).value = text;
 
-  </script>
+  } catch (err) {
+
+    alert("Failed to fetch transcript");
+
+    console.error(err);
+  }
+}
+
+function copyTranscript() {
+
+  const textarea =
+    document.getElementById("transcript");
+
+  textarea.select();
+
+  document.execCommand("copy");
+}
+
+</script>
 
 </body>
 </html>
