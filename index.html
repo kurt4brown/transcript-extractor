@@ -1,116 +1,32 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>YouTube Transcript Extractor</title>
+from flask import Flask, render_template, jsonify
+from youtube_transcript_api import YouTubeTranscriptApi
 
-  <style>
+app = Flask(__name__)
 
-    body {
-      font-family: Arial;
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-    }
+@app.route("/")
+def home():
+    return render_template("index.html")
 
-    textarea {
-      width: 100%;
-      height: 400px;
-      margin-top: 20px;
-    }
+@app.route("/transcript/<video_id>")
+def transcript(video_id):
 
-    input {
-      width: 100%;
-      padding: 10px;
-    }
+    try:
 
-    button {
-      margin-top: 10px;
-      padding: 10px 20px;
-      cursor: pointer;
-    }
+        transcript_data = YouTubeTranscriptApi.get_transcript(video_id)
 
-  </style>
-</head>
+        text = " ".join(
+            [x["text"] for x in transcript_data]
+        )
 
-<body>
+        return jsonify({
+            "transcript": text
+        })
 
-<h1>YouTube Transcript Extractor</h1>
+    except Exception as e:
 
-<input
-  id="youtubeUrl"
-  placeholder="Paste YouTube URL"
->
+        return jsonify({
+            "error": str(e)
+        })
 
-<button onclick="getTranscript()">
-  Get Transcript
-</button>
-
-<textarea id="transcript"></textarea>
-
-<button onclick="copyTranscript()">
-  Copy to Clipboard
-</button>
-
-<script>
-
-function extractVideoId(url) {
-
-  const match = url.match(
-    /(?:v=|youtu\.be\/)([^&\n?#]+)/
-  );
-
-  return match ? match[1] : null;
-}
-
-async function getTranscript() {
-
-  const url =
-    document.getElementById("youtubeUrl").value;
-
-  const videoId = extractVideoId(url);
-
-  if (!videoId) {
-    alert("Invalid URL");
-    return;
-  }
-
-  try {
-
-    const response = await fetch(
-      `https://youtubetranscript.com/?server_vid2=${videoId}`
-    );
-
-    const data = await response.json();
-
-    let text = "";
-
-    data.forEach(item => {
-      text += item.text + " ";
-    });
-
-    document.getElementById(
-      "transcript"
-    ).value = text;
-
-  } catch (err) {
-
-    alert("Failed to fetch transcript");
-
-    console.error(err);
-  }
-}
-
-function copyTranscript() {
-
-  const textarea =
-    document.getElementById("transcript");
-
-  textarea.select();
-
-  document.execCommand("copy");
-}
-
-</script>
-
-</body>
-</html>
+if __name__ == "__main__":
+    app.run()
